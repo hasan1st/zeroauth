@@ -238,7 +238,7 @@
   </div>
 
   <div class="footer">Human-friendly®️ procrastination tool.</div>
-  <div class="version">v0.0.2</div>
+  <div class="version">v0.1.2</div>
   
   <script>
     const symbols = ["💻","🍪","⌨️","🧠","🐛","⚡","📦","🔒"];
@@ -502,8 +502,6 @@ function showOverlay() {
 
       if (normalized === 'console') return 'cons';
       return normalized.substr(6, 3);
-      if (normalized === 'handleversionclick') return 'ver';
-      return 'cheat_mode';
     }
 
     function getCaller() {
@@ -514,6 +512,7 @@ function showOverlay() {
         const isConsole = !hasFilePath || /InjectedScript|<anonymous>|eval|debugger|console/i.test(callerFrame);
 
         if (isConsole) {
+          console.log("getCaller: ", isConsole)
           return "console";
         } else {
           const callerName = callerFrame.replace(/^at\s+/, '').split(/\s|\(|@/)[0];
@@ -523,6 +522,5 @@ function showOverlay() {
 
   </script>
 
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"83bc948ecace4236bc41f638c51b85e5","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
