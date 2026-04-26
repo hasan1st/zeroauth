@@ -16,17 +16,17 @@
       --match: #238636;
     }
 	
-	.logo {
-	  font-size: clamp(1.4rem, 4vw, 2rem);
-	  font-weight: 600;
-	  margin-bottom: 0.6em;
-	  color: #c9d1d9;
-	  letter-spacing: 0.5px;
-	}
-	
-	.logo span {
-	  color: #58a6ff;
-	}
+    .logo {
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      font-weight: 600;
+      margin-bottom: 0.6em;
+      color: #c9d1d9;
+      letter-spacing: 0.5px;
+    }
+    
+    .logo span {
+      color: #58a6ff;
+    }
 	
     body {
       margin: 0;
@@ -83,6 +83,7 @@
       justify-content: center;
       font-size: clamp(1.4rem, 5vw, 2rem);
       cursor: pointer;
+      -webkit-user-select: none;
       user-select: none;
       transition: all 0.15s ease;
       -webkit-tap-highlight-color: transparent;
@@ -107,6 +108,7 @@
       position: absolute;
       inset: 0;
       background: rgba(13,17,23,0.75);
+      -webkit-backdrop-filter: blur(6px);
       backdrop-filter: blur(6px);
       display: flex;
       flex-direction: column;
@@ -160,8 +162,9 @@
 	  font-size: 0.7rem;
 	  color: #6e7681;
 	  opacity: 0.5;
+	  -webkit-user-select: none;
 	  user-select: none;
-	  pointer-events: none;
+	  cursor: pointer;
 	}
   </style>
 </head>
@@ -186,7 +189,7 @@
   </div>
 
   <div class="footer">Human-friendly®️ procrastination tool.</div>
-  <div class="version">v0.0.2</div>
+  <div class="version">v0.0.3</div>
   
   <script>
     const symbols = ["💻","🖥️","⌨️","🧠","🐛","⚡","📦","🔒"];
@@ -314,6 +317,92 @@ function showOverlay() {
 }
 
     initGame();
+
+    // Check for auto-solve URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('r') === 'human') {
+      autoSolve();
+    }
+
+    // Version click functionality
+    const versionDiv = document.querySelector('.version');
+    let clickCount = 0;
+    let lastClickTime = 0;
+
+    versionDiv.addEventListener('click', () => {
+      const now = Date.now();
+      if (clickCount === 0 || now - lastClickTime > 500) {
+        clickCount = 1;
+      } else {
+        clickCount++;
+      }
+      lastClickTime = now;
+      
+      const versionMatch = versionDiv.textContent.match(/v(\d+\.\d+\.\d+)/);
+      if (versionMatch) {
+        const version = versionMatch[1];
+        const lastDigit = parseInt(version.split('.').pop());
+        if (clickCount === lastDigit) {
+          autoSolve();
+          clickCount = 0; // Reset for next game
+        }
+      }
+    });
+
+    function autoSolve() {
+      const cardElements = document.querySelectorAll('.card');
+      const symbolMap = {};
+
+      cardElements.forEach(card => {
+        const symbol = card.dataset.symbol;
+        if (!symbolMap[symbol]) symbolMap[symbol] = [];
+        symbolMap[symbol].push(card);
+      });
+
+      const pairs = Object.values(symbolMap);
+      let pairIndex = 0;
+      let totalDelay = 0;
+      const delayBetweenPairs = 150; // ~150ms per pair for total ~1.2s animation
+
+      function animatePair() {
+        if (pairIndex >= pairs.length) {
+          // All pairs animated, show overlay
+          setTimeout(() => {
+            if (matchedCount === cards.length) {
+              showOverlay();
+            }
+          }, 100);
+          return;
+        }
+
+        const pair = pairs[pairIndex];
+        const [card1, card2] = pair;
+
+        // Flip first card
+        card1.classList.add('flipped');
+        card1.textContent = card1.dataset.symbol;
+
+        // Flip second card after short delay
+        setTimeout(() => {
+          card2.classList.add('flipped');
+          card2.textContent = card2.dataset.symbol;
+
+          // Match them after another short delay
+          setTimeout(() => {
+            card1.classList.add('matched');
+            card2.classList.add('matched');
+            matchedCount += 2;
+
+            pairIndex++;
+            animatePair(); // Continue to next pair
+          }, 50);
+        }, 50);
+
+        totalDelay += delayBetweenPairs;
+      }
+
+      animatePair();
+    }
   </script>
 
 </body>
