@@ -1,0 +1,441 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZerOAuth</title>
+
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card: #161b22;
+      --border: #30363d;
+      --accent: #58a6ff;
+      --text: #c9d1d9;
+      --muted: #8b949e;
+      --match: #238636;
+    }
+	
+    .logo {
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      font-weight: 600;
+      margin-bottom: 0.6em;
+      color: #c9d1d9;
+      letter-spacing: 0.5px;
+    }
+    
+    .logo span {
+      color: #58a6ff;
+    }
+	
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Fira Code", monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      color: var(--accent);
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      margin-bottom: 0.2em;
+      text-align: center;
+    }
+
+    #status {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 0.5em;
+      text-align: center;
+    }
+
+    #moves {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 1em;
+    }
+
+    .game-wrapper {
+      position: relative;
+      width: min(92vw, 420px);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .card {
+      aspect-ratio: 1 / 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(1.4rem, 5vw, 2rem);
+      cursor: pointer;
+      -webkit-user-select: none;
+      user-select: none;
+      transition: all 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .card:active {
+      transform: scale(0.95);
+    }
+
+    .card.flipped {
+      background: #21262d;
+    }
+
+    .card.matched {
+      background: var(--match);
+      border-color: #2ea043;
+      color: #fff;
+    }
+
+    /* Overlay */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(13,17,23,0.75);
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .overlay h2 {
+      color: var(--accent);
+      margin-bottom: 0.5em;
+    }
+
+    .overlay p {
+      color: var(--muted);
+      margin-bottom: 1em;
+    }
+
+    .overlay p2 {
+      display: none; 
+      margin-top: 10px; 
+      font-size: 0.8rem; 
+      color: var(--accent);
+    }
+
+    button {
+      padding: 10px 16px;
+      font-size: 0.9rem;
+      background: #21262d;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      cursor: pointer;
+      width: 180px;
+    }
+
+    .footer {
+      margin-top: 1.2em;
+      font-size: 0.75rem;
+      color: #6e7681;
+      text-align: center;
+    }
+	
+	.version {
+	  position: fixed;
+	  bottom: 6px;
+	  right: 10px;
+	  /* font-size: 0.7rem; */
+	  color: #6e7681;
+	  opacity: 0.5;
+	  -webkit-user-select: none;
+	  user-select: none;
+	  cursor: default;
+	}
+  </style>
+</head>
+<body>
+  <div class="logo">
+    <span>&lt;</span>ZerOAuth<span>/&gt;</span>
+  </div>
+  
+  <h1>Please verify you are human...</h1>
+  <div id="status">Match the pairs to unlock the site 👨‍💻</div>
+  <div id="moves">Moves: 0</div>
+
+  <div class="game-wrapper">
+    <div class="grid" id="game"></div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay">
+      <h2>Access Granted ✅</h2>
+      <p id="finalText"></p>
+      <button onclick="initGame()">Restart</button>
+      <div id="flag" style="display: none; margin-top: 10px; font-size: 0.8rem; color: var(--accent);">flag{zeroauth_cheat_mode}</div>
+    </div>
+  </div>
+
+  <div class="footer">Human-friendly®️ procrastination tool.</div>
+  <div class="version">v0.0.2</div>
+  
+  <script>
+    const symbols = ["💻","🖥️","⌨️","🧠","🐛","⚡","📦","🔒"];
+    let cards = [];
+    let flipped = [];
+    let matchedCount = 0;
+    let moves = 0;
+    let autoSolved = false;
+
+    function vibrate(pattern) {
+      if (navigator.vibrate) navigator.vibrate(pattern);
+    }
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function initGame() {
+      const game = document.getElementById("game");
+      const overlay = document.getElementById("overlay");
+
+      game.innerHTML = "";
+      overlay.classList.remove("active");
+
+      flipped = [];
+      matchedCount = 0;
+      moves = 0;
+      autoSolved = false;
+      updateMoves();
+
+      cards = shuffle([...symbols, ...symbols]);
+
+      cards.forEach(symbol => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.dataset.symbol = symbol;
+
+        card.addEventListener("click", () => flipCard(card));
+        game.appendChild(card);
+      });
+
+      document.getElementById("status").textContent =
+        "Match the pairs to unlock the site 👨‍💻";
+    }
+
+    function updateMoves() {
+      document.getElementById("moves").textContent = "Moves: " + moves;
+    }
+
+    function flipCard(card) {
+      if (
+        flipped.length === 2 ||
+        card.classList.contains("flipped") ||
+        card.classList.contains("matched")
+      ) return;
+
+      vibrate(10);
+
+      card.classList.add("flipped");
+      card.textContent = card.dataset.symbol;
+      flipped.push(card);
+
+      if (flipped.length === 2) {
+        moves++;
+        updateMoves();
+        checkMatch();
+      }
+    }
+
+    function checkMatch() {
+      const [a, b] = flipped;
+
+      if (a.dataset.symbol === b.dataset.symbol) {
+        a.classList.add("matched");
+        b.classList.add("matched");
+        matchedCount += 2;
+
+        vibrate([40,20,40]);
+
+        if (matchedCount === cards.length) {
+          showOverlay();
+          vibrate([100,30,100]);
+        }
+
+        flipped = [];
+      } else {
+        setTimeout(() => {
+          a.classList.remove("flipped");
+          b.classList.remove("flipped");
+          a.textContent = "";
+          b.textContent = "";
+          flipped = [];
+        }, 500);
+      }
+    }
+
+function showOverlay() {
+  const overlay = document.getElementById("overlay");
+  const finalText = document.getElementById("finalText");
+
+  const variations = [
+    score => `You are ${score}% human`,
+    score => `You are ${score}% human (probably)`,
+    score => `You are ${score}% human • acceptable`,
+    score => `You are ${score}% human (we're watching you)`,
+    score => `You are ${score}% human • suspiciously efficient`,
+    score => `You are ${score}% human • 1% JavaScript`,
+    score => `You are ${score}% human • CAPTCHA passed`,
+    score => `You are ${score}% human • close enough`,
+    score => `You are ${score}% human • margin of error ±42%`,
+    score => `You are ${score}% human • please don't automate this`
+  ];
+
+  // Mostly believable, occasionally cursed
+  const score = Math.random() < 0.85
+    ? Math.floor(Math.random() * 21) + 80   // 80–100%
+    : Math.floor(Math.random() * 31) + 50;  // 50–80% (rare suspicious result)
+
+  const message = variations[Math.floor(Math.random() * variations.length)](score);
+
+  finalText.innerHTML = `
+    Completed in ${moves} moves.<br>
+    ${message}<br>
+  `;
+
+  overlay.classList.add("active");
+
+  const flagDiv = document.getElementById("flag");
+  if (autoSolved) {
+    flagDiv.style.display = "block";
+  } else {
+    flagDiv.style.display = "none";
+  }
+}
+
+    initGame();
+
+    // Check for auto-solve URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('r') === 'human') {
+      autoSolve();
+    }
+
+    // Version click functionality
+    const versionDiv = document.querySelector('.version');
+    let clickCount = 0;
+    let lastClickTime = 0;
+
+    versionDiv.addEventListener('click', () => {
+      const now = Date.now();
+      if (clickCount === 0 || now - lastClickTime > 500) {
+        clickCount = 1;
+      } else {
+        clickCount++;
+      }
+      lastClickTime = now;
+      
+      const versionMatch = versionDiv.textContent.match(/v(\d+\.\d+\.\d+)/);
+      if (versionMatch) {
+        const version = versionMatch[1];
+        const lastDigit = parseInt(version.split('.').pop());
+        if (clickCount === lastDigit) {
+          autoSolve();
+          clickCount = 0; // Reset for next game
+        }
+      }
+    });
+
+    function autoSolve() {
+      console.log("Caller:", getCaller())
+      autoSolved = true;
+      const cardElements = document.querySelectorAll('.card');
+      const symbolMap = {};
+
+      cardElements.forEach(card => {
+        const symbol = card.dataset.symbol;
+        if (!symbolMap[symbol]) symbolMap[symbol] = [];
+        symbolMap[symbol].push(card);
+      });
+
+      const pairs = Object.values(symbolMap);
+      let pairIndex = 0;
+      let totalDelay = 0;
+      const delayBetweenPairs = 150; // ~150ms per pair for total ~1.2s animation
+
+      function animatePair() {
+        if (pairIndex >= pairs.length) {
+          // All pairs animated, show overlay
+          setTimeout(() => {
+            if (matchedCount === cards.length) {
+              showOverlay();
+            }
+          }, 100);
+          return;
+        }
+
+        const pair = pairs[pairIndex];
+        const [card1, card2] = pair;
+
+        // Flip first card
+        card1.classList.add('flipped');
+        card1.textContent = card1.dataset.symbol;
+
+        // Flip second card after short delay
+        setTimeout(() => {
+          card2.classList.add('flipped');
+          card2.textContent = card2.dataset.symbol;
+
+          // Match them after another short delay
+          setTimeout(() => {
+            card1.classList.add('matched');
+            card2.classList.add('matched');
+            matchedCount += 2;
+
+            pairIndex++;
+            animatePair(); // Continue to next pair
+          }, 50);
+        }, 50);
+
+        totalDelay += delayBetweenPairs;
+      }
+
+      animatePair();
+    }
+
+function getCaller() {
+  const stack = new Error().stack;
+  return stack
+  // The first line is the error message
+  // The second line is this function (getCaller)
+  // The third line is the actual caller
+  const lines = stack.split('\n');
+  return lines[2] ? lines[2].trim() : 'Unknown caller';
+}
+
+  </script>
+
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"83bc948ecace4236bc41f638c51b85e5","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
