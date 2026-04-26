@@ -8,14 +8,23 @@
 
   <style>
     :root {
-      /* --bg: #0d1117; */
+      /* Dark mode variables */
       --bg: #0b1f2a;
       --card: #161b22;
       --border: #30363d;
-      /* --accent: #58a6ff; */
       --accent: #3dabe8;
       --text: #c9d1d9;
       --muted: #8b949e;
+      --match: #238636;
+    }
+
+    .light-mode {
+      --bg: #ffffff;
+      --card: #f6f8fa;
+      --border: #d1d9e0;
+      --accent: #0969da;
+      --text: #24292f;
+      --muted: #656d76;
       --match: #238636;
     }
 	
@@ -48,7 +57,7 @@
 
     h1 {
       color: var(--accent);
-      font-size: clamp(1.4rem, 4vw, 2rem);
+      font-size: clamp(1rem, 3vw, 1.7rem);
       margin-bottom: 0.2em;
       text-align: center;
     }
@@ -126,6 +135,10 @@
       padding: 20px;
     }
 
+    .light-mode .overlay {
+      background: rgba(255,255,255,0.9);
+    }
+
     .overlay.active {
       opacity: 1;
       pointer-events: all;
@@ -151,7 +164,7 @@
     button {
       padding: 10px 16px;
       font-size: 0.9rem;
-      background: #21262d;
+      background: var(--card);
       border: 1px solid var(--border);
       color: var(--text);
       border-radius: 8px;
@@ -171,18 +184,42 @@
 	  bottom: 6px;
 	  right: 10px;
 	  /* font-size: 0.7rem; */
-	  color: #c5d2e6;
+	  color: #6e7681;
 	  opacity: 0.5;
 	  -webkit-user-select: none;
 	  user-select: none;
 	  cursor: default;
 	}
+
+    .theme-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      background: var(--border);
+    }
   </style>
 </head>
 <body>
   <div class="logo">
     <span>&lt;</span>ZerOAuth<span>/&gt;</span>
   </div>
+  
+  <button id="theme-toggle" class="theme-toggle">🌙</button>
   
   <h1>Please verify you are human...</h1>
   <div id="status">Match the pairs to unlock the site 👨‍💻</div>
@@ -339,6 +376,26 @@ function showOverlay() {
 
     initGame();
 
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('theme-toggle');
+    const body = document.body;
+
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      body.classList.add('light-mode');
+      themeToggle.textContent = '☀️';
+    } else {
+      themeToggle.textContent = '🌙';
+    }
+
+    themeToggle.addEventListener('click', () => {
+      body.classList.toggle('light-mode');
+      const isLight = body.classList.contains('light-mode');
+      themeToggle.textContent = isLight ? '☀️' : '🌙';
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    });
+
     // Check for auto-solve URL parameter
     function searchUrlQuery() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -445,6 +502,8 @@ function showOverlay() {
 
       if (normalized === 'console') return 'cons';
       return normalized.substr(6, 3);
+      if (normalized === 'handleversionclick') return 'ver';
+      return 'cheat_mode';
     }
 
     function getCaller() {
