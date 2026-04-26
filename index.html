@@ -238,7 +238,7 @@
   </div>
 
   <div class="footer">Human-friendly®️ procrastination tool.</div>
-  <div class="version">v0.0.2</div>
+  <div class="version">v0.1.2</div>
   
   <script>
     const symbols = ["💻","🍪","⌨️","🧠","🐛","⚡","📦","🔒"];
@@ -508,7 +508,7 @@ function showOverlay() {
         const stack = new Error().stack;
         const lines = String(stack || '').split('\n').map(line => line.trim()).filter(Boolean);
         const callerFrame = lines[3] || lines[4] || "";
-        const hasFilePath = /\.(js|html|ts)/i.test(callerFrame);
+        const hasFilePath = /\.(js|html|ts)|https?:\/\//i.test(callerFrame);
         const isConsole = !hasFilePath || /InjectedScript|<anonymous>|eval|debugger|console/i.test(callerFrame);
 
         if (isConsole) {
