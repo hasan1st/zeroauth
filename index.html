@@ -137,6 +137,13 @@
       margin-bottom: 1em;
     }
 
+    .overlay p2 {
+      display: none; 
+      margin-top: 10px; 
+      font-size: 0.8rem; 
+      color: var(--accent);
+    }
+
     button {
       padding: 10px 16px;
       font-size: 0.9rem;
@@ -185,6 +192,7 @@
       <h2>Access Granted ✅</h2>
       <p id="finalText"></p>
       <button onclick="initGame()">Restart</button>
+      <div id="flag" style="display: none; margin-top: 10px; font-size: 0.8rem; color: var(--accent);">flag{zeroauth_cheat_mode}</div>
     </div>
   </div>
 
@@ -197,6 +205,7 @@
     let flipped = [];
     let matchedCount = 0;
     let moves = 0;
+    let autoSolved = false;
 
     function vibrate(pattern) {
       if (navigator.vibrate) navigator.vibrate(pattern);
@@ -216,6 +225,7 @@
       flipped = [];
       matchedCount = 0;
       moves = 0;
+      autoSolved = false;
       updateMoves();
 
       cards = shuffle([...symbols, ...symbols]);
@@ -314,6 +324,13 @@ function showOverlay() {
   `;
 
   overlay.classList.add("active");
+
+  const flagDiv = document.getElementById("flag");
+  if (autoSolved) {
+    flagDiv.style.display = "block";
+  } else {
+    flagDiv.style.display = "none";
+  }
 }
 
     initGame();
@@ -350,6 +367,7 @@ function showOverlay() {
     });
 
     function autoSolve() {
+      autoSolved = true;
       const cardElements = document.querySelectorAll('.card');
       const symbolMap = {};
 
