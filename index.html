@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zer oAuth</title>
+  <title>ZerOAuth</title>
 
   <style>
     :root {
@@ -15,7 +15,19 @@
       --muted: #8b949e;
       --match: #238636;
     }
-
+	
+	.logo {
+	  font-size: clamp(1.4rem, 4vw, 2rem);
+	  font-weight: 600;
+	  margin-bottom: 0.6em;
+	  color: #c9d1d9;
+	  letter-spacing: 0.5px;
+	}
+	
+	.logo span {
+	  color: #58a6ff;
+	}
+	
     body {
       margin: 0;
       min-height: 100vh;
@@ -25,30 +37,40 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 16px;
+      justify-content: flex-start;
+      padding: 40px;
       box-sizing: border-box;
     }
 
     h1 {
       color: var(--accent);
       font-size: clamp(1.4rem, 4vw, 2rem);
+      margin-bottom: 0.2em;
       text-align: center;
-      margin-bottom: 0.3em;
     }
 
     #status {
-      font-size: clamp(0.85rem, 2.5vw, 1rem);
+      font-size: 0.9rem;
       color: var(--muted);
+      margin-bottom: 0.5em;
       text-align: center;
-      margin-bottom: 1.2em;
+    }
+
+    #moves {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 1em;
+    }
+
+    .game-wrapper {
+      position: relative;
+      width: min(92vw, 420px);
     }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 10px;
-      width: min(92vw, 420px);
     }
 
     .card {
@@ -80,8 +102,40 @@
       color: #fff;
     }
 
+    /* Overlay */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(13,17,23,0.75);
+      backdrop-filter: blur(6px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .overlay h2 {
+      color: var(--accent);
+      margin-bottom: 0.5em;
+    }
+
+    .overlay p {
+      color: var(--muted);
+      margin-bottom: 1em;
+    }
+
     button {
-      margin-top: 16px;
       padding: 10px 16px;
       font-size: 0.9rem;
       background: #21262d;
@@ -89,11 +143,7 @@
       color: var(--text);
       border-radius: 8px;
       cursor: pointer;
-      width: min(200px, 80%);
-    }
-
-    button:active {
-      transform: scale(0.97);
+      width: 180px;
     }
 
     .footer {
@@ -102,31 +152,40 @@
       color: #6e7681;
       text-align: center;
     }
-
-    /* Small screens tweak */
-    @media (max-width: 400px) {
-      .grid {
-        gap: 8px;
-      }
-    }
   </style>
 </head>
 <body>
-
+  <div class="logo">
+    <span>&lt;</span>Zer oAuth<span>/&gt;</span>
+  </div>
+  
   <h1>Please prove that you are a human...</h1>
   <div id="status">Match the pairs to unlock the site 👨‍💻</div>
+  <div id="moves">Moves: 0</div>
 
-  <div class="grid" id="game"></div>
+  <div class="game-wrapper">
+    <div class="grid" id="game"></div>
 
-  <button onclick="initGame()">Restart</button>
+    <!-- Overlay -->
+    <div class="overlay" id="overlay">
+      <h2>Access Granted ✅</h2>
+      <p id="finalText"></p>
+      <button onclick="initGame()">Restart</button>
+    </div>
+  </div>
 
-  <div class="footer">Human-friendly procrastination tool</div>
+  <div class="footer">Human-friendly®️ procrastination tool.</div>
 
   <script>
     const symbols = ["💻","🖥️","⌨️","🧠","🐛","⚡","📦","🔒"];
     let cards = [];
     let flipped = [];
     let matchedCount = 0;
+    let moves = 0;
+
+    function vibrate(pattern) {
+      if (navigator.vibrate) navigator.vibrate(pattern);
+    }
 
     function shuffle(array) {
       return array.sort(() => Math.random() - 0.5);
@@ -134,13 +193,19 @@
 
     function initGame() {
       const game = document.getElementById("game");
+      const overlay = document.getElementById("overlay");
+
       game.innerHTML = "";
+      overlay.classList.remove("active");
+
       flipped = [];
       matchedCount = 0;
+      moves = 0;
+      updateMoves();
 
       cards = shuffle([...symbols, ...symbols]);
 
-      cards.forEach((symbol) => {
+      cards.forEach(symbol => {
         const card = document.createElement("div");
         card.className = "card";
         card.dataset.symbol = symbol;
@@ -153,6 +218,10 @@
         "Match the pairs to unlock the site 👨‍💻";
     }
 
+    function updateMoves() {
+      document.getElementById("moves").textContent = "Moves: " + moves;
+    }
+
     function flipCard(card) {
       if (
         flipped.length === 2 ||
@@ -160,11 +229,15 @@
         card.classList.contains("matched")
       ) return;
 
+      vibrate(10);
+
       card.classList.add("flipped");
       card.textContent = card.dataset.symbol;
       flipped.push(card);
 
       if (flipped.length === 2) {
+        moves++;
+        updateMoves();
         checkMatch();
       }
     }
@@ -177,9 +250,11 @@
         b.classList.add("matched");
         matchedCount += 2;
 
+        vibrate([40,20,40]);
+
         if (matchedCount === cards.length) {
-          document.getElementById("status").textContent =
-            "Access Granted ✅ (You are at least 10% human!)";
+          showOverlay();
+          vibrate([100,30,100]);
         }
 
         flipped = [];
@@ -193,6 +268,38 @@
         }, 500);
       }
     }
+
+function showOverlay() {
+  const overlay = document.getElementById("overlay");
+  const finalText = document.getElementById("finalText");
+
+  const variations = [
+    score => `You are ${score}% human`,
+    score => `You are ${score}% human (probably)`,
+    score => `You are ${score}% human • acceptable`,
+    score => `You are ${score}% human (we're watching you)`,
+    score => `You are ${score}% human • suspiciously efficient`,
+    score => `You are ${score}% human • 1% JavaScript`,
+    score => `You are ${score}% human • CAPTCHA passed`,
+    score => `You are ${score}% human • close enough`,
+    score => `You are ${score}% human • margin of error ±42%`,
+    score => `You are ${score}% human • please don't automate this`
+  ];
+
+  // Mostly believable, occasionally cursed
+  const score = Math.random() < 0.85
+    ? Math.floor(Math.random() * 21) + 80   // 80–100%
+    : Math.floor(Math.random() * 31) + 50;  // 50–80% (rare suspicious result)
+
+  const message = variations[Math.floor(Math.random() * variations.length)](score);
+
+  finalText.innerHTML = `
+    Completed in ${moves} moves.<br>
+    ${message}
+  `;
+
+  overlay.classList.add("active");
+}
 
     initGame();
   </script>
