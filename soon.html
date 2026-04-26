@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Coming Soon 🎮</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #1e1e2f, #3a3a6a);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    h1 {
+      margin-bottom: 0.2em;
+    }
+
+    #score {
+      margin-bottom: 1em;
+      font-size: 1.2em;
+      opacity: 0.8;
+    }
+
+    #gameArea {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      border: 2px dashed rgba(255,255,255,0.4);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    #target {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      background: #ffd166;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    #target:active {
+      transform: scale(0.9);
+    }
+
+    .footer {
+      margin-top: 1.5em;
+      font-size: 0.9em;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Coming Soon 🚀</h1>
+  <div id="score">Score: 0</div>
+
+  <div id="gameArea">
+    <div id="target"></div>
+  </div>
+
+  <div class="footer">While you wait, catch the square 😄</div>
+
+  <script>
+    const target = document.getElementById("target");
+    const gameArea = document.getElementById("gameArea");
+    const scoreDisplay = document.getElementById("score");
+
+    let score = 0;
+
+    function moveTarget() {
+      const maxX = gameArea.clientWidth - target.clientWidth;
+      const maxY = gameArea.clientHeight - target.clientHeight;
+
+      const x = Math.random() * maxX;
+      const y = Math.random() * maxY;
+
+      target.style.left = x + "px";
+      target.style.top = y + "px";
+    }
+
+    target.addEventListener("click", () => {
+      score++;
+      scoreDisplay.textContent = "Score: " + score;
+      moveTarget();
+    });
+
+    // Move every 1 second to keep it challenging
+    setInterval(moveTarget, 1000);
+
+    // Initial position
+    moveTarget();
+  </script>
+
+</body>
+</html>
