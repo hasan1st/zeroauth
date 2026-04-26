@@ -171,7 +171,7 @@
 	  bottom: 6px;
 	  right: 10px;
 	  /* font-size: 0.7rem; */
-	  color: #6e7681;
+	  color: #c5d2e6;
 	  opacity: 0.5;
 	  -webkit-user-select: none;
 	  user-select: none;
@@ -340,17 +340,16 @@ function showOverlay() {
     initGame();
 
     // Check for auto-solve URL parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('r') === 'human') {
-      autoSolve();
+    function searchUrlQuery() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('r') === 'human') {
+        autoSolve();
+      }
     }
 
+    searchUrlQuery()
     // Version click functionality
-    const versionDiv = document.querySelector('.version');
-    let clickCount = 0;
-    let lastClickTime = 0;
-
-    versionDiv.addEventListener('click', () => {
+    function handleVersionClick() {
       const now = Date.now();
       if (clickCount === 0 || now - lastClickTime > 500) {
         clickCount = 1;
@@ -368,30 +367,17 @@ function showOverlay() {
           clickCount = 0; // Reset for next game
         }
       }
-    });
+    }
+
+    const versionDiv = document.querySelector('.version');
+    let clickCount = 0;
+    let lastClickTime = 0;
+
+    versionDiv.addEventListener('click', () => handleVersionClick());
 
     function autoSolve() {
-        const stack = new Error().stack;
-        const callerFrame = stack.split('\n')[2] || "";
-        const hasFilePath = /\.(js|html|ts)/i.test(callerFrame);
-        const isConsole = !hasFilePath || /InjectedScript/i.test(callerFrame);
-  
-        // Browsers usually mark console input as '<anonymous>', 'eval', or 'debugger'
-        //const isConsole = /<anonymous>|eval|debugger|console/i.test(stack.split('\n')[2]);
-
-        if (isConsole) {
-          console.log("Action: Called from the CONSOLE");
-        } else {
-          // Extract the caller name for script calls
-          //const callerMatch = stack.split('\n')[2].match(/at (\S+)/);
-          //const callerName = callerMatch ? callerMatch[1] : "Unknown Script";
-          const callerName = callerFrame//.replace(/^\s*at\s+/, '').split(' ')[0];
-          console.log(`Action: Called by function "${callerName}"`);
-        }
-        // const stack = new Error().stack;
-        // const slines = stack.split('\n');
-        //return lines[3] ? lines[3].trim() : 'Unknown caller';
-         // console.log("Caller:", getCaller())
+      const callerFunction = getCaller();
+      console.log("Caller: ", callerFunction);
 
       autoSolved = true;
       const cardElements = document.querySelectorAll('.card');
@@ -445,23 +431,36 @@ function showOverlay() {
         totalDelay += delayBetweenPairs;
       }
 
+      const flagMode = "_" + getFlagMode(callerFunction);
+      const flagDiv = document.getElementById("flag");
+      const flagSuffix = flagDiv.textContent.replace(/_[^_]+(?=\})/, flagMode);
+      flagDiv.textContent = flagSuffix;
+      console.log("Suff: ", flagSuffix, " ,Mode: ", flagMode);
+
       animatePair();
     }
-function getCaller() {
-  const stack = new Error().stack;
-  // The first line is the error message
-  // The second line is this function (getCaller)
-  // The third line is the actual caller
-  const lines = stack.split('\n');
-  return lines[3] ? lines[3].trim() : 'Unknown caller';
-}
 
-// function myApp() {
-//   console.log("Called by:", getCaller());
-// }
+    function getFlagMode(callerFunction) {
+      const normalized = String(callerFunction || '').trim().toLowerCase();
 
-// myApp();
+      if (normalized === 'console') return 'cons';
+      return normalized.substr(6, 3);
+    }
 
+    function getCaller() {
+        const stack = new Error().stack;
+        const lines = String(stack || '').split('\n').map(line => line.trim()).filter(Boolean);
+        const callerFrame = lines[3] || lines[4] || "";
+        const hasFilePath = /\.(js|html|ts)/i.test(callerFrame);
+        const isConsole = !hasFilePath || /InjectedScript|<anonymous>|eval|debugger|console/i.test(callerFrame);
+
+        if (isConsole) {
+          return "console";
+        } else {
+          const callerName = callerFrame.replace(/^at\s+/, '').split(/\s|\(|@/)[0];
+          return callerName || "console";
+        }
+    }
 
   </script>
 
