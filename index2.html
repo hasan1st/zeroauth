@@ -8,10 +8,12 @@
 
   <style>
     :root {
-      --bg: #0d1117;
+      /* --bg: #0d1117; */
+      --bg: #0b1f2a;
       --card: #161b22;
       --border: #30363d;
-      --accent: #58a6ff;
+      /* --accent: #58a6ff; */
+      --accent: #3dabe8;
       --text: #c9d1d9;
       --muted: #8b949e;
       --match: #238636;
@@ -26,7 +28,8 @@
     }
     
     .logo span {
-      color: #58a6ff;
+      /* color: #58a6ff; */
+      color: #3dabe8;
     }
 	
     body {
@@ -201,7 +204,7 @@
   <div class="version">v0.0.2</div>
   
   <script>
-    const symbols = ["💻","🖥️","⌨️","🧠","🐛","⚡","📦","🔒"];
+    const symbols = ["💻","🍪","⌨️","🧠","🐛","⚡","📦","🔒"];
     let cards = [];
     let flipped = [];
     let matchedCount = 0;
@@ -368,7 +371,28 @@ function showOverlay() {
     });
 
     function autoSolve() {
-      console.log("Caller:", getCaller())
+        const stack = new Error().stack;
+        const callerFrame = stack.split('\n')[2] || "";
+        const hasFilePath = /\.(js|html|ts)/i.test(callerFrame);
+        const isConsole = !hasFilePath || /InjectedScript/i.test(callerFrame);
+  
+        // Browsers usually mark console input as '<anonymous>', 'eval', or 'debugger'
+        //const isConsole = /<anonymous>|eval|debugger|console/i.test(stack.split('\n')[2]);
+
+        if (isConsole) {
+          console.log("Action: Called from the CONSOLE");
+        } else {
+          // Extract the caller name for script calls
+          //const callerMatch = stack.split('\n')[2].match(/at (\S+)/);
+          //const callerName = callerMatch ? callerMatch[1] : "Unknown Script";
+          const callerName = callerFrame//.replace(/^\s*at\s+/, '').split(' ')[0];
+          console.log(`Action: Called by function "${callerName}"`);
+        }
+        // const stack = new Error().stack;
+        // const slines = stack.split('\n');
+        //return lines[3] ? lines[3].trim() : 'Unknown caller';
+         // console.log("Caller:", getCaller())
+
       autoSolved = true;
       const cardElements = document.querySelectorAll('.card');
       const symbolMap = {};
@@ -423,16 +447,21 @@ function showOverlay() {
 
       animatePair();
     }
-
 function getCaller() {
   const stack = new Error().stack;
-  return stack
   // The first line is the error message
   // The second line is this function (getCaller)
   // The third line is the actual caller
   const lines = stack.split('\n');
-  return lines[2] ? lines[2].trim() : 'Unknown caller';
+  return lines[3] ? lines[3].trim() : 'Unknown caller';
 }
+
+// function myApp() {
+//   console.log("Called by:", getCaller());
+// }
+
+// myApp();
+
 
   </script>
 
