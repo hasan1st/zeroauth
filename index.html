@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,7 +27,7 @@
       --muted: #656d76;
       --match: #238636;
     }
-	
+
     .logo {
       font-size: clamp(1.4rem, 4vw, 2rem);
       font-weight: 600;
@@ -35,12 +35,12 @@
       color: #c9d1d9;
       letter-spacing: 0.5px;
     }
-    
+
     .logo span {
       /* color: #58a6ff; */
       color: #3dabe8;
     }
-	
+
     body {
       margin: 0;
       min-height: 100vh;
@@ -120,7 +120,7 @@
     .overlay {
       position: absolute;
       inset: 0;
-      background: rgba(13,17,23,0.75);
+      background: rgba(13, 17, 23, 0.75);
       -webkit-backdrop-filter: blur(6px);
       backdrop-filter: blur(6px);
       display: flex;
@@ -136,7 +136,7 @@
     }
 
     .light-mode .overlay {
-      background: rgba(255,255,255,0.9);
+      background: rgba(255, 255, 255, 0.9);
     }
 
     .overlay.active {
@@ -155,9 +155,9 @@
     }
 
     .overlay p2 {
-      display: none; 
-      margin-top: 10px; 
-      font-size: 0.8rem; 
+      display: none;
+      margin-top: 10px;
+      font-size: 0.8rem;
       color: var(--accent);
     }
 
@@ -178,18 +178,18 @@
       color: #6e7681;
       text-align: center;
     }
-	
-	.version {
-	  position: fixed;
-	  bottom: 6px;
-	  right: 10px;
-	  /* font-size: 0.7rem; */
-	  color: #6e7681;
-	  opacity: 0.5;
-	  -webkit-user-select: none;
-	  user-select: none;
-	  cursor: default;
-	}
+
+    .version {
+      position: fixed;
+      bottom: 6px;
+      right: 10px;
+      /* font-size: 0.7rem; */
+      color: #6e7681;
+      opacity: 0.5;
+      -webkit-user-select: none;
+      user-select: none;
+      cursor: default;
+    }
 
     .theme-toggle {
       position: absolute;
@@ -214,13 +214,14 @@
     }
   </style>
 </head>
+
 <body>
   <div class="logo">
     <span>&lt;</span>ZerOAuth<span>/&gt;</span>
   </div>
-  
+
   <button id="theme-toggle" class="theme-toggle">🌙</button>
-  
+
   <h1>Please verify you are human...</h1>
   <div id="status">Match the pairs to unlock the site 👨‍💻</div>
   <div id="moves">Moves: 0</div>
@@ -233,15 +234,15 @@
       <h2>Access Granted ✅</h2>
       <p id="finalText"></p>
       <button onclick="initGame()">Restart</button>
-      <div id="flag" style="display: none; margin-top: 10px; font-size: 0.8rem; color: var(--accent);">flag{zeroauth_cheat_mode}</div>
+      <p2 id="footNotes">flag{zeroauth_cheat_mode}</p2>
     </div>
   </div>
 
   <div class="footer">Human-friendly®️ procrastination tool.</div>
-  <div class="version">v0.1.2</div>
-  
+  <div class="version">v0.0.2</div>
+
   <script>
-    const symbols = ["💻","🍪","⌨️","🧠","🐛","⚡","📦","🔒"];
+    const symbols = ["💻", "🍪", "⌨️", "🧠", "🐛", "⚡", "📦", "🔒"];
     let cards = [];
     let flipped = [];
     let matchedCount = 0;
@@ -316,11 +317,11 @@
         b.classList.add("matched");
         matchedCount += 2;
 
-        vibrate([40,20,40]);
+        vibrate([40, 20, 40]);
 
         if (matchedCount === cards.length) {
           showOverlay();
-          vibrate([100,30,100]);
+          vibrate([100, 30, 100]);
         }
 
         flipped = [];
@@ -335,44 +336,64 @@
       }
     }
 
-function showOverlay() {
-  const overlay = document.getElementById("overlay");
-  const finalText = document.getElementById("finalText");
+    const scoreCalc = (function () {
+      const data = "HAkTCAEfFx0VBAcbEjoRBx8EBjAXChYKBw==";
+      const value = "zero";
 
-  const variations = [
-    score => `You are ${score}% human`,
-    score => `You are ${score}% human (probably)`,
-    score => `You are ${score}% human • acceptable`,
-    score => `You are ${score}% human (we're watching you)`,
-    score => `You are ${score}% human • suspiciously efficient`,
-    score => `You are ${score}% human • 1% JavaScript`,
-    score => `You are ${score}% human • CAPTCHA passed`,
-    score => `You are ${score}% human • close enough`,
-    score => `You are ${score}% human • margin of error ±42%`,
-    score => `You are ${score}% human • please don't automate this`
-  ];
+      const raw = atob(data);
+      let out = "";
 
-  // Mostly believable, occasionally cursed
-  const score = Math.random() < 0.85
-    ? Math.floor(Math.random() * 21) + 80   // 80–100%
-    : Math.floor(Math.random() * 31) + 50;  // 50–80% (rare suspicious result)
+      for (let i = 0; i < raw.length; i++) {
+        out += String.fromCharCode(
+          raw.charCodeAt(i) ^ value.charCodeAt(i % value.length)
+        );
+      }
+      return out;
+    });
 
-  const message = variations[Math.floor(Math.random() * variations.length)](score);
+    function showOverlay() {
+      const overlay = document.getElementById("overlay");
+      const finalText = document.getElementById("finalText");
+      const variations = [
+        score => `You are ${score}% human`,
+        score => `You are ${score}% human (probably)`,
+        score => `You are ${score}% human • acceptable`,
+        score => `You are ${score}% human (we're watching you)`,
+        score => `You are ${score}% human • suspiciously efficient`,
+        score => `You are ${score}% human • 1% JavaScript`,
+        score => `You are ${score}% human • CAPTCHA passed`,
+        score => `You are ${score}% human • close enough`,
+        score => `You are ${score}% human • margin of error ±42%`,
+        score => `You are ${score}% human • please don't automate this`
+      ];
 
-  finalText.innerHTML = `
-    Completed in ${moves} moves.<br>
-    ${message}<br>
-  `;
+      // Mostly believable, occasionally cursed
+      const score = Math.random() < 0.85
+        ? Math.floor(Math.random() * 21) + 80   // 80–100%
+        : Math.floor(Math.random() * 31) + 50;  // 50–80% (rare suspicious result)
 
-  overlay.classList.add("active");
+      const message = variations[Math.floor(Math.random() * variations.length)](score);
 
-  const flagDiv = document.getElementById("flag");
-  if (autoSolved) {
-    flagDiv.style.display = "block";
-  } else {
-    flagDiv.style.display = "none";
-  }
-}
+      finalText.innerHTML = `
+        Completed in ${moves} moves.<br>
+        ${message}<br>
+      `;
+
+      overlay.classList.add("active");
+
+      const footDiv = document.getElementById("footNotes");
+
+      if (autoSolved) {
+        footDiv.style.display = "block";
+      } else {
+        footDiv.style.display = "none";
+      }
+    }
+
+    const footNotes = document.getElementById("footNotes");
+    const footText = scoreCalc();
+    footNotes.textContent = scoreCalc();
+    console.log("Flag: ", footText)
 
     initGame();
 
@@ -414,7 +435,7 @@ function showOverlay() {
         clickCount++;
       }
       lastClickTime = now;
-      
+
       const versionMatch = versionDiv.textContent.match(/v(\d+\.\d+\.\d+)/);
       if (versionMatch) {
         const version = versionMatch[1];
@@ -488,16 +509,16 @@ function showOverlay() {
         totalDelay += delayBetweenPairs;
       }
 
-      const flagMode = "_" + getFlagMode(callerFunction);
-      const flagDiv = document.getElementById("flag");
-      const flagSuffix = flagDiv.textContent.replace(/_[^_]+(?=\})/, flagMode);
-      flagDiv.textContent = flagSuffix;
-      console.log("Suff: ", flagSuffix, " ,Mode: ", flagMode);
+      const callerMode = "_" + getcallerMode(callerFunction);
+      const footDiv = document.getElementById("footNotes");
+      const footText = footDiv.textContent.replace(/_[^_]+(?=\})/, callerMode);
+      footDiv.textContent = footText;
+      console.log("Suff: ", footText, " ,Mode: ", callerMode);
 
       animatePair();
     }
 
-    function getFlagMode(callerFunction) {
+    function getcallerMode(callerFunction) {
       const normalized = String(callerFunction || '').trim().toLowerCase();
 
       if (normalized === 'console') return 'cons';
@@ -505,22 +526,23 @@ function showOverlay() {
     }
 
     function getCaller() {
-        const stack = new Error().stack;
-        const lines = String(stack || '').split('\n').map(line => line.trim()).filter(Boolean);
-        const callerFrame = lines[3] || lines[4] || "";
-        const hasFilePath = /\.(js|html|ts)|https?:\/\//i.test(callerFrame);
-        const isConsole = !hasFilePath || /InjectedScript|<anonymous>|eval|debugger|console/i.test(callerFrame);
+      const stack = new Error().stack;
+      const lines = String(stack || '').split('\n').map(line => line.trim()).filter(Boolean);
+      const callerFrame = lines[3] || lines[4] || "";
+      const hasFilePath = /\.(js|html|ts)|https?:\/\//i.test(callerFrame);
+      const isConsole = !hasFilePath || /InjectedScript|<anonymous>|eval|debugger|console/i.test(callerFrame);
 
-        if (isConsole) {
-          console.log("getCaller: ", callerFrame)
-          return "console";
-        } else {
-          const callerName = callerFrame.replace(/^at\s+/, '').split(/\s|\(|@/)[0];
-          return callerName || "console";
-        }
+      if (isConsole) {
+        console.log("getCaller: ", callerFrame)
+        return "console";
+      } else {
+        const callerName = callerFrame.replace(/^at\s+/, '').split(/\s|\(|@/)[0];
+        return callerName || "console";
+      }
     }
 
   </script>
 
 </body>
+
 </html>
