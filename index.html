@@ -152,11 +152,22 @@
       color: #6e7681;
       text-align: center;
     }
+	
+	.version {
+	  position: fixed;
+	  bottom: 6px;
+	  right: 10px;
+	  font-size: 0.7rem;
+	  color: #6e7681;
+	  opacity: 0.5;
+	  user-select: none;
+	  pointer-events: none;
+	}
   </style>
 </head>
 <body>
   <div class="logo">
-    <span>&lt;</span>Zer oAuth<span>/&gt;</span>
+    <span>&lt;</span>ZerOAuth<span>/&gt;</span>
   </div>
   
   <h1>Please prove that you are a human...</h1>
@@ -175,7 +186,8 @@
   </div>
 
   <div class="footer">Human-friendly®️ procrastination tool.</div>
-
+  <div class="version">v0.0.2</div>
+  
   <script>
     const symbols = ["💻","🖥️","⌨️","🧠","🐛","⚡","📦","🔒"];
     let cards = [];
