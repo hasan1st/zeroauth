@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZerOAuth</title>
+
+  <style>
+    :root {
+      /* Dark mode default */
+      --bg: #0b1f2a;
+      --card: #161b22;
+      --border: #30363d;
+      --accent: #3dabe8;
+      --text: #c9d1d9;
+      --muted: #8b949e;
+      --match: #238636;
+    }
+
+    .light-mode {
+      --bg: #ffffff;
+      --card: #f6f8fa;
+      --border: #d1d9e0;
+      --accent: #0969da;
+      --text: #24292f;
+      --muted: #656d76;
+      --match: #238636;
+    }
+
+    .logo {
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      font-weight: 600;
+      margin-bottom: 0.6em;
+      color: #c9d1d9;
+      letter-spacing: 0.5px;
+    }
+
+    .logo span {
+      /* color: #58a6ff; */
+      color: #3dabe8;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Fira Code", monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      color: var(--accent);
+      font-size: clamp(1rem, 3vw, 1.7rem);
+      margin-bottom: 0.2em;
+      text-align: center;
+    }
+
+    #status {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 0.5em;
+      text-align: center;
+    }
+
+    #moves {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 1em;
+    }
+
+    .game-wrapper {
+      position: relative;
+      width: min(92vw, 420px);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .card {
+      aspect-ratio: 1 / 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(1.4rem, 5vw, 2rem);
+      cursor: pointer;
+      -webkit-user-select: none;
+      user-select: none;
+      transition: all 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .card:active {
+      transform: scale(0.95);
+    }
+
+    .card.flipped {
+      background: #21262d;
+    }
+
+    .card.matched {
+      background: var(--match);
+      border-color: #2ea043;
+      color: #fff;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(13, 17, 23, 0.75);
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .light-mode .overlay {
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .overlay h2 {
+      color: var(--accent);
+      margin-bottom: 0.5em;
+    }
+
+    .overlay p {
+      color: var(--muted);
+      margin-bottom: 1em;
+    }
+
+    .overlay p2 {
+      display: none;
+      margin-top: 10px;
+      font-size: 0.8rem;
+      color: var(--accent);
+    }
+
+    button {
+      padding: 10px 16px;
+      font-size: 0.9rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      cursor: pointer;
+      width: 180px;
+    }
+
+    .footer {
+      margin-top: 1.2em;
+      font-size: 0.75rem;
+      color: #6e7681;
+      text-align: center;
+    }
+
+    .version {
+      position: fixed;
+      bottom: 6px;
+      right: 10px;
+      /* font-size: 0.7rem; */
+      color: #6e7681;
+      opacity: 0.5;
+      -webkit-user-select: none;
+      user-select: none;
+      cursor: default;
+    }
+
+    .theme-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      background: var(--border);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="logo">
+    <span>&lt;</span>ZerOAuth<span>/&gt;</span>
+  </div>
+
+  <button id="theme-toggle" class="theme-toggle">🌙</button>
+
+  <h1>Please verify you are human...</h1>
+  <div id="status">Match the pairs to unlock the site 👨‍💻</div>
+  <div id="moves">Moves: 0</div>
+
+  <div class="game-wrapper">
+    <div class="grid" id="game"></div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay">
+      <h2>Access Granted ✅</h2>
+      <p id="finalText"></p>
+      <button onclick="initGame()">Restart</button>
+      <p2 id="footNotes"></p2>
+    </div>
+  </div>
+
+  <div class="footer">Human-friendly®️ procrastination tool.</div>
+  <div class="version">v0.0.2</div>
+
+  <script>
+    const symbols = ["💻", "🍪", "⌨️", "🧠", "🐛", "⚡", "📦", "🔒"];
+    let cards = [];
+    let flipped = [];
+    let matchedCount = 0;
+    let moves = 0;
+    let autoSolved = false;
+
+    function vibrate(pattern) {
+      if (navigator.vibrate) navigator.vibrate(pattern);
+    }
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function initGame() {
+      const game = document.getElementById("game");
+      const overlay = document.getElementById("overlay");
+
+      game.innerHTML = "";
+      overlay.classList.remove("active");
+
+      flipped = [];
+      matchedCount = 0;
+      moves = 0;
+      autoSolved = false;
+      updateMoves();
+
+      cards = shuffle([...symbols, ...symbols]);
+
+      cards.forEach(symbol => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.dataset.symbol = symbol;
+
+        card.addEventListener("click", () => flipCard(card));
+        game.appendChild(card);
+      });
+
+      document.getElementById("status").textContent =
+        "Match the pairs to unlock the site 👨‍💻";
+    }
+
+    function updateMoves() {
+      document.getElementById("moves").textContent = "Moves: " + moves;
+    }
+
+    function flipCard(card) {
+      if (
+        flipped.length === 2 ||
+        card.classList.contains("flipped") ||
+        card.classList.contains("matched")
+      ) return;
+
+      vibrate(10);
+
+      card.classList.add("flipped");
+      card.textContent = card.dataset.symbol;
+      flipped.push(card);
+
+      if (flipped.length === 2) {
+        moves++;
+        updateMoves();
+        checkMatch();
+      }
+    }
+
+    function checkMatch() {
+      const [a, b] = flipped;
+
+      if (a.dataset.symbol === b.dataset.symbol) {
+        a.classList.add("matched");
+        b.classList.add("matched");
+        matchedCount += 2;
+
+        vibrate([40, 20, 40]);
+
+        if (matchedCount === cards.length) {
+          showOverlay();
+          vibrate([100, 30, 100]);
+        }
+
+        flipped = [];
+      } else {
+        setTimeout(() => {
+          a.classList.remove("flipped");
+          b.classList.remove("flipped");
+          a.textContent = "";
+          b.textContent = "";
+          flipped = [];
+        }, 500);
+      }
+    }
+
+    const scoreCalc = (function () {
+      const data = "HAkTCAEfFx0VBAcbEjoRBx8EBjAXChYKBw==";
+      const value = "zero";
+
+      const raw = atob(data);
+      let out = "";
+
+      for (let i = 0; i < raw.length; i++) {
+        out += String.fromCharCode(
+          raw.charCodeAt(i) ^ value.charCodeAt(i % value.length)
+        );
+      }
+      return out;
+    });
+
+    function showOverlay() {
+      const overlay = document.getElementById("overlay");
+      const finalText = document.getElementById("finalText");
+      const bank = [
+        "",
+        " (probably)",
+        " • acceptable",
+        " (we're watching you)",
+        " • suspiciously efficient",
+        " • 1% JavaScript",
+        " • CAPTCHA passed",
+        " • close enough",
+        " • margin of error ±42%",
+        " • please don't automate this"
+      ];
+
+      const score = Math.random() < 0.85
+        ? Math.floor(Math.random() * 21) + 80
+        : Math.floor(Math.random() * 31) + 50;
+
+      const message = `You are ${score}% human ${bank[Math.floor(Math.random() * bank.length)]}`;
+
+      finalText.innerHTML = `
+        Completed in ${moves} moves<br>
+        ${message}<br>
+      `;
+
+      overlay.classList.add("active");
+
+      const footDiv = document.getElementById("footNotes");
+
+      if (autoSolved) {
+        footDiv.style.display = "block";
+      } else {
+        footDiv.style.display = "none";
+      }
+    }
+
+    const footNotes = document.getElementById("footNotes");
+    const footText = scoreCalc();
+    footNotes.textContent = scoreCalc();
+
+    initGame();
+
+    const themeToggle = document.getElementById('theme-toggle');
+    const body = document.body;
+
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      body.classList.add('light-mode');
+      themeToggle.textContent = '☀️';
+    } else {
+      themeToggle.textContent = '🌙';
+    }
+
+    themeToggle.addEventListener('click', () => {
+      body.classList.toggle('light-mode');
+      const isLight = body.classList.contains('light-mode');
+      themeToggle.textContent = isLight ? '☀️' : '🌙';
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    });
+
+    function configurLog() {
+      const tracker = new URLSearchParams(window.location.search);
+      if (tracker.get('r') === 'human') {
+        autoSolve();
+      }
+    }
+
+    function handleVertical() {
+      const now = Date.now();
+      if (clickCount === 0 || now - lastClickTime > 500) {
+        clickCount = 1;
+      } else {
+        clickCount++;
+      }
+      lastClickTime = now;
+
+      const versionMatch = versionDiv.textContent.match(/v(\d+\.\d+\.\d+)/);
+      if (versionMatch) {
+        const version = versionMatch[1];
+        const lastDigit = parseInt(version.split('.').pop());
+        if (clickCount === lastDigit) {
+          autoSolve();
+          clickCount = 0; 
+        }
+      }
+    }
+
+    configurLog()
+
+    const versionDiv = document.querySelector('.version');
+    let clickCount = 0;
+    let lastClickTime = 0;
+
+    versionDiv.addEventListener('click', () => handleVertical());
+
+    function autoSolve() {
+      const callerFunction = getCaller();
+
+      autoSolved = true;
+      const cardElements = document.querySelectorAll('.card');
+      const symbolMap = {};
+
+      cardElements.forEach(card => {
+        const symbol = card.dataset.symbol;
+        if (!symbolMap[symbol]) symbolMap[symbol] = [];
+        symbolMap[symbol].push(card);
+      });
+
+      const pairs = Object.values(symbolMap);
+      let pairIndex = 0;
+      let totalDelay = 0;
+      const delayBetweenPairs = 150;
+
+      function animatePair() {
+        if (pairIndex >= pairs.length) {
+          setTimeout(() => {
+            if (matchedCount === cards.length) {
+              showOverlay();
+            }
+          }, 100);
+          return;
+        }
+
+        const pair = pairs[pairIndex];
+        const [card1, card2] = pair;
+
+        card1.classList.add('flipped');
+        card1.textContent = card1.dataset.symbol;
+
+        setTimeout(() => {
+          card2.classList.add('flipped');
+          card2.textContent = card2.dataset.symbol;
+
+          setTimeout(() => {
+            card1.classList.add('matched');
+            card2.classList.add('matched');
+            matchedCount += 2;
+
+            pairIndex++;
+            animatePair(); 
+          }, 50);
+        }, 50);
+
+        totalDelay += delayBetweenPairs;
+      }
+
+      const callerMode = "_" + getCallerMode(callerFunction);
+      const footDiv = document.getElementById("footNotes");
+      const footText = footDiv.textContent.replace(/_[^_]+(?=\})/, callerMode);
+      footDiv.textContent = footText;
+
+      animatePair();
+    }
+
+    function getCallerMode(callerFunction) {
+      const normalized = String(callerFunction || '').trim().toLowerCase();
+
+      if (normalized === 'console') return 'cons';
+      return normalized.substr(6, 3);
+    }
+
+    function getCaller() {
+      const stack = new Error().stack;
+      const lines = String(stack || '').split('\n').map(line => line.trim()).filter(Boolean);
+      const callerFrame = lines[3] || lines[4] || "";
+      const hasFilePath = /\.(js|html|ts)|https?:\/\//i.test(callerFrame);
+      const isConsole = !hasFilePath || /InjectedScript|<anonymous>|eval|debugger|console/i.test(callerFrame);
+
+      if (isConsole) {
+        return "console";
+      } else {
+        const callerName = callerFrame.replace(/^at\s+/, '').split(/\s|\(|@/)[0];
+        return callerName || "console";
+      }
+    }
+
+  </script>
+
+</body>
+
+</html>
+<div hidden>
+  <br>
+  Rules: No cheating
+</div>
