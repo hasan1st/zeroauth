@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dev Site Loading...</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: "Fira Code", monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    h1 {
+      color: #58a6ff;
+      margin-bottom: 0.2em;
+    }
+
+    #status {
+      margin-bottom: 1em;
+      font-size: 0.9em;
+      color: #8b949e;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 80px);
+      gap: 12px;
+    }
+
+    .card {
+      width: 80px;
+      height: 80px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2em;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: #58a6ff;
+      box-shadow: 0 0 10px #58a6ff55;
+    }
+
+    .card.flipped {
+      background: #21262d;
+    }
+
+    .card.matched {
+      background: #238636;
+      color: #fff;
+      border-color: #2ea043;
+    }
+
+    .footer {
+      margin-top: 1.5em;
+      font-size: 0.8em;
+      color: #6e7681;
+    }
+
+    button {
+      margin-top: 1em;
+      padding: 6px 12px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: #58a6ff;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Initializing Dev Environment...</h1>
+  <div id="status">Match the pairs to unlock the site 👨‍💻</div>
+
+  <div class="grid" id="game"></div>
+
+  <button onclick="initGame()">Restart</button>
+
+  <div class="footer">v0.1 • placeholder page with questionable productivity</div>
+
+  <script>
+    const symbols = ["💻","🖥️","⌨️","🧠","🐛","⚡","📦","🔒"];
+    let cards = [];
+    let flipped = [];
+    let matchedCount = 0;
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function initGame() {
+      const game = document.getElementById("game");
+      game.innerHTML = "";
+      flipped = [];
+      matchedCount = 0;
+
+      cards = shuffle([...symbols, ...symbols]);
+
+      cards.forEach((symbol, index) => {
+        const card = document.createElement("div");
+        card.classList.add("card");
+        card.dataset.symbol = symbol;
+        card.dataset.index = index;
+        card.innerHTML = "";
+
+        card.addEventListener("click", () => flipCard(card));
+
+        game.appendChild(card);
+      });
+
+      document.getElementById("status").textContent = "Match the pairs to unlock the site 👨‍💻";
+    }
+
+    function flipCard(card) {
+      if (
+        flipped.length === 2 ||
+        card.classList.contains("flipped") ||
+        card.classList.contains("matched")
+      ) return;
+
+      card.classList.add("flipped");
+      card.textContent = card.dataset.symbol;
+      flipped.push(card);
+
+      if (flipped.length === 2) {
+        checkMatch();
+      }
+    }
+
+    function checkMatch() {
+      const [a, b] = flipped;
+
+      if (a.dataset.symbol === b.dataset.symbol) {
+        a.classList.add("matched");
+        b.classList.add("matched");
+        matchedCount += 2;
+
+        if (matchedCount === cards.length) {
+          document.getElementById("status").textContent =
+            "Access Granted ✅ (site still coming soon though)";
+        }
+
+        flipped = [];
+      } else {
+        setTimeout(() => {
+          a.classList.remove("flipped");
+          b.classList.remove("flipped");
+          a.textContent = "";
+          b.textContent = "";
+          flipped = [];
+        }, 600);
+      }
+    }
+
+    initGame();
+  </script>
+
+</body>
+</html>
