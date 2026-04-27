@@ -191,6 +191,12 @@
       cursor: default;
     }
 
+    .rules {
+      font-size: 0.7rem; 
+      cursor: context-menu;
+      max-width: 520px;
+    }
+
     .theme-toggle {
       position: absolute;
       top: 20px;
@@ -337,7 +343,7 @@
     }
 
     const scoreCalc = (function () {
-      const data = "HAkTCAEfFx0VBAcbEjoRBx8EBjAXChYKBw==";
+      const data = "HAkTCAEfFx0VBAcbEjoRBx8EBjAYChwaCRg=";
       const value = "zero";
 
       const raw = atob(data);
@@ -536,10 +542,13 @@
 </body>
 
 </html>
-<div hidden>
+<div id="Rules" hidden class="rules">
   <br>
+    <br>
   Rules: No cheating allowed! This is meant to be a fun little challenge, not a test of your automation skills. If you want to automate it, go for it - but try solving it manually first! 😉
-  There are three hidden flags in the codebase. Can you find them all? 🕵️‍♂️
+  <br><br>
+  There are <b>three</b> hidden flags in the webapp. Can you find them all? 🕵️‍♂️
+  <br>
   The flags' format is "flag{...}" and they are hidden in different ways:
   <ul>
     <li>First flag can be found through interaction with the webpage elements. You can switch off your dev skills here.</li>
