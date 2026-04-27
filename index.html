@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -433,18 +434,19 @@
         const version = versionMatch[1];
         const lastDigit = parseInt(version.split('.').pop());
         if (clickCount === lastDigit) {
+          versionDiv.style.pointerEvents = 'none';
           autoSolve();
           clickCount = 0; 
         }
       }
     }
 
-    configurLog()
-
     const versionDiv = document.querySelector('.version');
     let clickCount = 0;
     let lastClickTime = 0;
-
+    
+    configurLog()
+    
     versionDiv.addEventListener('click', () => handleVertical());
 
     function autoSolve() {
@@ -472,6 +474,7 @@
               showOverlay();
             }
           }, 100);
+          versionDiv.style.pointerEvents = '';
           return;
         }
 
