@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureAudit™ — Module 04: Workstation Security Assessment</title>
+<link rel="stylesheet" href="rostyle.css">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════
+     INTRO SCREEN
+════════════════════════════════════════════════════ -->
+<div id="intro-screen">
+  <div class="intro-inner">
+    <div class="intro-badge">Module 04 · L2 Intermediate · 1.0 CPE Credit</div>
+    <h1 class="intro-title">Workstation<br><span>Security Audit</span></h1>
+    <div class="intro-sub">UNIT WS-0047 · ENTERPRISE SECURITY AWARENESS TRAINING</div>
+    <p class="intro-desc">
+      You are an IT Security Analyst performing a surprise audit of an employee's unattended workstation.
+      Examine the scene carefully and identify all security risks. Click on items that concern you — but watch
+      out for false positives. Your findings will be added to the investigation log.
+    </p>
+    <div class="intro-rules">
+      <div class="rule-item">
+        <div class="rule-dot risk"></div>
+        <div>
+          <strong>Security Risk — +10 pts</strong>
+          <p>Active threats and policy violations requiring immediate remediation.</p>
+        </div>
+      </div>
+      <div class="rule-item">
+        <div class="rule-dot safe"></div>
+        <div>
+          <strong>Good Practice — −5 pts</strong>
+          <p>Correct security behaviors incorrectly flagged as threats.</p>
+        </div>
+      </div>
+      <div class="rule-item">
+        <div class="rule-dot ambig"></div>
+        <div>
+          <strong>Ambiguous — +5 pts</strong>
+          <p>Context-dependent items worth investigating either way.</p>
+        </div>
+      </div>
+      <div class="rule-item">
+        <div class="rule-dot dist"></div>
+        <div>
+          <strong>Distractor — −5 pts</strong>
+          <p>Irrelevant items that waste investigation time.</p>
+        </div>
+      </div>
+    </div>
+    <button class="btn-start" onclick="startGame()">Begin Security Assessment</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     HEADER
+════════════════════════════════════════════════════ -->
+<div id="header" class="hidden">
+  <div class="header-brand">
+    <div class="brand-icon">🔒</div>
+    <div>
+      <div class="brand-text">SecureAudit™</div>
+      <div class="brand-module">WS-0047 · Module 04</div>
+    </div>
+  </div>
+  <div class="header-stats">
+    <div class="stat-chip timer">⏱ <span class="val" id="timer-val">00:00</span></div>
+    <div class="stat-chip score-chip">Score: <span class="val" id="score-val">0</span></div>
+    <div class="stat-chip fp-chip">FP: <span class="val" id="fp-val">0</span></div>
+    <div class="stat-chip">Findings: <span class="val" id="findings-val">0</span>/5</div>
+    <button class="btn-submit" onclick="submitReport()">Submit Report</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     GAME LAYOUT
+════════════════════════════════════════════════════ -->
+<div id="game-layout" class="hidden">
+
+  <!-- SCENE AREA -->
+  <div id="scene-area">
+    <div id="scene-container">
+
+      <!-- ═══ IMAGE SCENE ═══ -->
+      <img src="RiskyOffice.png" id="scene-img" alt="Risky Office Scene" />
+
+      <!-- ═══ HOTSPOTS ═══ -->
+
+      <!-- 1. STICKY NOTE (risk) -->
+      <div class="hotspot type-risk" id="hs-sticky"
+           style="left: 40%; top: 65%;"
+           onclick="handleClick('sticky')">
+        <div class="hotspot-ring"></div>
+        <div class="hotspot-dot"></div>
+        <div class="hotspot-tooltip">Examine monitor bezel</div>
+      </div>
+
+      <!-- 2. PHISHING EMAIL (risk) -->
+      <div class="hotspot type-risk" id="hs-phishing"
+           style="left: 80%; top: 26%;"
+           onclick="handleClick('phishing')">
+        <div class="hotspot-ring"></div>
+        <div class="hotspot-dot"></div>
+        <div class="hotspot-tooltip">Inspect open email</div>
+      </div>
+
+      <!-- 3. TERMINAL PASSWORD (risk) -->
+      <div class="hotspot type-risk" id="hs-terminal"
+           style="left: 38%; top: 51%;"
+           onclick="handleClick('terminal')">
+        <div class="hotspot-ring"></div>
+        <div class="hotspot-dot"></div>
+        <div class="hotspot-tooltip">Review command history</div>
+      </div>
+
+      <!-- 4. CONFIDENTIAL DOCUMENT (risk) -->
+      <div class="hotspot type-risk" id="hs-document"
+           style="left: 45%; top: 88%;"
+           onclick="handleClick('document')">
+        <div class="hotspot-ring"></div>
+        <div class="hotspot-dot"></div>
+        <div class="hotspot-tooltip">Examine desk document</div>
+      </div>
+
+      <!-- 5. UNKNOWN USB (risk) -->
+      <div class="hotspot type-risk" id="hs-usb"
+           style="left: 55%; top: 65%;"
+           onclick="handleClick('usb')">
+        <div class="hotspot-ring"></div>
+        <div class="hotspot-dot"></div>
+        <div class="hotspot-tooltip">Inspect USB devices</div>
+      </div>
+
+      <!-- 6. VPN OFF (risk) -->
+      <div class="hotspot type-risk" id="hs-vpn"
+           style="left: 84%; top: 62.5%;"
+           onclick="handleClick('vpn')">
+        <div class="hotspot-ring"></div>
+        <div class="hotspot-dot"></div>
+        <div class="hotspot-tooltip">Check VPN status</div>
+      </div>
+
+      <!-- 7. WEBCAM TAPE (distractor - good practice) -->
+      <div class="hotspot type-distractor" id="hs-webcam"
+           style="left: 39%; top: 20%;"
+           onclick="handleClick('webcam')">
+        <div class="hotspot-ring"></div>
+        <div class="hotspot-dot"></div>
+        <div class="hotspot-tooltip">Inspect webcam</div>
+      </div>
+
+      <!-- 8. SMARTPHONE (distractor) -->
+      <div class="hotspot type-distractor" id="hs-phone"
+           style="left: 14%; top: 85%;"
+           onclick="handleClick('phone')">
+        <div class="hotspot-ring"></div>
+        <div class="hotspot-dot"></div>
+        <div class="hotspot-tooltip">Check smartphone</div>
+      </div>
+
+      <!-- 9. COFFEE MUG (distractor) -->
+      <div class="hotspot type-distractor" id="hs-mug"
+           style="left: 19%; top: 71%;"
+           onclick="handleClick('mug')">
+        <div class="hotspot-ring"></div>
+        <div class="hotspot-dot"></div>
+        <div class="hotspot-tooltip">Examine coffee mug</div>
+      </div>
+
+      <!-- 10. WHITEBOARD (ambiguous) -->
+      <div class="hotspot type-ambig" id="hs-whiteboard"
+           style="left: 8%; top: 16%;"
+           onclick="handleClick('whiteboard')">
+        <div class="hotspot-ring"></div>
+        <div class="hotspot-dot"></div>
+        <div class="hotspot-tooltip">Review whiteboard</div>
+      </div>
+
+      <!-- 11. VISITOR BADGE (ambiguous) -->
+      <div class="hotspot type-ambig" id="hs-badge"
+           style="left: 80%; top: 91%;"
+           onclick="handleClick('badge')">
+        <div class="hotspot-ring"></div>
+        <div class="hotspot-dot"></div>
+        <div class="hotspot-tooltip">Inspect visitor badge</div>
+      </div>
+
+    </div><!-- end scene-container -->
+	  <div class="scene-caption" id="scene-caption">
+        <span class="icon">🔍</span>
+        Click on items in the scene to investigate them.
+      </div>
+  </div><!-- end scene-area -->
+
+  <!-- ═══ LOG PANEL ═══ -->
+  <div id="log-panel" class="collapsed">
+    <div class="panel-header">
+      <span class="panel-title">INVESTIGATION LOG</span>
+      <button class="panel-toggle" onclick="togglePanel()" title="Toggle panel">❮</button> <!-- < -->
+    </div>
+	<br>
+	<div id="log-count" class="panel-collapsed-label">0</div>
+    <div class="panel-collapsed-label" onclick="togglePanel()">INVESTIGATION LOG</div>
+    <div class="panel-content" id="panel-content">
+      <div class="panel-empty" id="panel-empty">
+        <span class="icon">🔍</span>
+        Click on items in the scene to investigate them.<br><br>
+        Findings will appear here with detailed analysis.
+      </div>
+    </div>
+  </div>
+
+</div><!-- end game-layout -->
+
+<!-- ═══════════════════════════════════════════════════
+     MOBILE BOTTOM BAR
+════════════════════════════════════════════════════ -->
+<div id="mobile-bottom-bar">
+  <div class="mob-stat">🎯 <span class="v" id="mob-findings">0</span>/5</div>
+  <div class="mob-stat" style="color:var(--red)">⚠ FP: <span class="v" id="mob-fp">0</span></div>
+  <div class="mob-stat" style="color:var(--cyan)">⏱ <span class="v" id="mob-timer">00:00</span></div>
+  <button class="btn-mob-log" onclick="openMobileSheet()">LOG</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     MOBILE SHEET
+════════════════════════════════════════════════════ -->
+<div id="mobile-sheet-overlay" onclick="closeMobileSheet()"></div>
+<div id="mobile-sheet">
+  <div class="sheet-handle-bar"></div>
+  <div class="sheet-header">
+    <span class="sheet-title">INVESTIGATION LOG</span>
+    <button class="sheet-close" onclick="closeMobileSheet()">✕</button>
+  </div>
+  <div class="sheet-content" id="sheet-content">
+    <div class="panel-empty">
+      <span class="icon">🔍</span>
+      No findings yet. Tap items in the scene.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     TOAST CONTAINER
+════════════════════════════════════════════════════ -->
+<div id="toast-container"></div>
+
+<!-- ═══════════════════════════════════════════════════
+     COMPLETION SCREEN
+════════════════════════════════════════════════════ -->
+<div id="completion-screen">
+  <div class="completion-inner">
+    <div class="completion-header">
+      <h1 id="comp-title">Security Assessment Complete</h1>
+      <p>WORKSTATION WS-0047 · MODULE 04 · <span id="comp-date"></span></p>
+    </div>
+
+    <div class="score-ring-container">
+      <div class="score-ring-wrap">
+        <svg class="score-ring-svg" viewBox="0 0 160 160">
+          <circle class="score-ring-bg" cx="80" cy="80" r="65"/>
+          <circle class="score-ring-fill" id="ring-fill" cx="80" cy="80" r="65"/>
+        </svg>
+        <div class="score-ring-text">
+          <div class="score-num" id="comp-score">0</div>
+          <div class="score-label">/ 100 pts</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-val" id="comp-findings" style="color:var(--green)">0/5</div>
+        <div class="metric-desc">Risks Found</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val" id="comp-fp" style="color:var(--red)">0</div>
+        <div class="metric-desc">False Positives</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val" id="comp-time" style="color:var(--cyan)">0:00</div>
+        <div class="metric-desc">Response Time</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val" id="comp-ambig" style="color:var(--amber)">0/2</div>
+        <div class="metric-desc">Ambiguous Reviewed</div>
+      </div>
+    </div>
+
+    <div class="maturity-section">
+      <div class="maturity-header">
+        <span class="maturity-label">Security Maturity Rating</span>
+        <span class="maturity-rating" id="maturity-rating">—</span>
+      </div>
+      <div class="maturity-bar-bg">
+        <div class="maturity-bar-fill" id="maturity-bar"></div>
+      </div>
+      <div class="maturity-tiers">
+        <span class="tier-label">Uninitiated</span>
+        <span class="tier-label">Developing</span>
+        <span class="tier-label">Competent</span>
+        <span class="tier-label">Proficient</span>
+        <span class="tier-label">Expert</span>
+      </div>
+    </div>
+
+    <div class="breakdown-section">
+      <div class="breakdown-header">Finding-by-Finding Breakdown</div>
+      <table class="breakdown-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Type</th>
+            <th>Severity</th>
+            <th>Status</th>
+            <th>Points</th>
+          </tr>
+        </thead>
+        <tbody id="breakdown-tbody"></tbody>
+      </table>
+    </div>
+
+    <button class="btn-retake" onclick="retakeAssessment()">↺ Retake Assessment</button>
+  </div>
+</div>
+
+<script src="roscript.js"></script>
+</body>
+</html>
